@@ -2,6 +2,68 @@
 
 A modular, extensible agent framework for software engineering and scientific computing tasks. Inspired by Claude Code, SciAgent implements an autonomous agent loop that can plan work, execute tools, and iterate until tasks are complete.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph User["👤 User"]
+        CLI["CLI / Python API"]
+    end
+
+    subgraph MainAgent["🤖 Main Agent Loop"]
+        direction TB
+        Think["Think"]
+        Act["Act"]
+        Observe["Observe"]
+        Think --> Act --> Observe --> Think
+    end
+
+    subgraph Tools["🔧 Tools"]
+        direction TB
+        Shell["bash<br/>Execute commands"]
+        FileOps["view / write_file / str_replace<br/>File operations"]
+        Search["search<br/>Glob & grep"]
+        Web["web<br/>Search & fetch"]
+        Todo["todo<br/>Task management"]
+    end
+
+    subgraph SubAgents["🤖 Sub-Agents (Built-in)"]
+        direction TB
+        Researcher["researcher<br/>Read-only exploration"]
+        Reviewer["reviewer<br/>Code review"]
+        TestWriter["test_writer<br/>Test generation"]
+        General["general<br/>Complex tasks"]
+    end
+
+    subgraph State["💾 State"]
+        Context["Context Window"]
+        TodoList["Todo List"]
+        Session["Session Persistence"]
+    end
+
+    subgraph LLM["🧠 LLM"]
+        LiteLLM["LiteLLM"]
+        Anthropic["Anthropic"]
+        OpenAI["OpenAI"]
+        Google["Google"]
+        Local["Ollama"]
+    end
+
+    CLI --> MainAgent
+    MainAgent <--> Tools
+    MainAgent <--> SubAgents
+    MainAgent <--> State
+    MainAgent <--> LiteLLM
+    LiteLLM --> Anthropic
+    LiteLLM --> OpenAI
+    LiteLLM --> Google
+    LiteLLM --> Local
+
+    SubAgents -.->|"restricted tools"| Tools
+```
+
+> **Note:** Sub-agents are built-in and registered in `SubAgentRegistry._register_defaults()`. Custom sub-agents can be added via `SubAgentRegistry.register()`.
+
 ## Features
 
 - **Autonomous Agent Loop**: Think-Act-Observe cycle with automatic iteration
