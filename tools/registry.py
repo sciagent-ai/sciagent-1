@@ -122,7 +122,7 @@ class ToolRegistry:
 
 def create_atomic_registry(working_dir: str = ".") -> ToolRegistry:
     """
-    Create registry with the 5 atomic tools.
+    Create registry with the 6 atomic tools.
 
     This is the minimal tool set for scientific/engineering tasks:
     - bash: Shell execution
@@ -130,14 +130,16 @@ def create_atomic_registry(working_dir: str = ".") -> ToolRegistry:
     - search: Find files (glob) and content (grep)
     - web: Search and fetch web content
     - todo: Track task progress
+    - service: Run code in containerized simulation environments (RCWA, MEEP, etc.)
 
-    Total: 5 tools
+    Total: 6 tools
     """
     from .atomic.shell import ShellTool
     from .atomic.file_ops import FileOpsTool
     from .atomic.search import SearchTool
     from .atomic.web import WebTool
     from .atomic.todo import TodoTool
+    from .atomic.service import ServiceTool
 
     registry = ToolRegistry()
 
@@ -146,6 +148,7 @@ def create_atomic_registry(working_dir: str = ".") -> ToolRegistry:
     registry.register(SearchTool(working_dir))
     registry.register(WebTool())
     registry.register(TodoTool())
+    registry.register(ServiceTool(working_dir))
 
     return registry
 

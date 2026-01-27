@@ -1,0 +1,114 @@
+# Service Registry
+# Defines containerized simulation/compute services available to the agent
+#
+# Resolution order:
+# 1. Check local Docker images
+# 2. Pull from GHCR (ghcr.io/sciagent-ai/{name}:latest)
+# 3. Build from Dockerfile (services/{name}/Dockerfile)
+
+defaults:
+  organization: sciagent-ai
+  registry: ghcr.io
+  tag: latest
+
+services:
+  rcwa:
+    description: "RCWA/S4 - Rigorous Coupled Wave Analysis for electromagnetic simulations"
+    image: ghcr.io/sciagent-ai/s4-rcwa
+    dockerfile: services/rcwa/Dockerfile
+    runtime: python3
+    workdir: /workspace
+    capabilities:
+      - "Photonic crystal simulations"
+      - "Diffraction grating analysis"
+      - "Multilayer thin film optics"
+      - "Scattering matrix calculations"
+    example: |
+      import S4
+      S = S4.New(Lattice=1, NumBasis=20)
+      S.SetMaterial('Vacuum', 1)  # Must define Vacuum
+      S.SetMaterial('Si', 12+0.1j)
+      S.AddLayer('top', 0, 'Vacuum')
+      S.AddLayer('slab', 0.5, 'Si')
+      S.AddLayerCopy('bottom', 0, 'top')
+      S.SetFrequency(1/0.5)
+      S.SetExcitationPlanewave((0,0), 1, 0)  # Required before GetPowerFlux
+      print(S.GetPowerFlux('bottom'))
+
+  meep:
+    description: "MEEP - FDTD electromagnetic simulation"
+    image: ghcr.io/sciagent-ai/meep
+    dockerfile: services/meep/Dockerfile
+    runtime: python3
+    workdir: /workspace
+    capabilities:
+      - "Time-domain electromagnetic simulations"
+      - "Waveguide design and analysis"
+      - "Resonator modeling"
+      - "Near-to-far-field transformations"
+    example: |
+      import meep as mp
+      cell = mp.Vector3(16, 8, 0)
+      geometry = [mp.Block(mp.Vector3(mp.inf, 1, mp.inf), center=mp.Vector3(), material=mp.Medium(epsilon=12))]
+      sources = [mp.Source(mp.ContinuousSource(frequency=0.15), component=mp.Ez, center=mp.Vector3(-7,0))]
+      sim = mp.Simulation(cell_size=cell, geometry=geometry, sources=sources, resolution=10)
+      sim.run(until=200)
+
+  openfoam:
+    description: "OpenFOAM - Computational Fluid Dynamics"
+    image: ghcr.io/sciagent-ai/openfoam
+    dockerfile: services/openfoam/Dockerfile
+    runtime: bash
+    workdir: /workspace
+    capabilities:
+      - "Incompressible and compressible flow"
+      - "Turbulence modeling (RANS, LES, DNS)"
+      - "Heat transfer simulations"
+      - "Multiphase flow"
+    example: |
+      cd /workspace/cavity
+      blockMesh
+      icoFoam
+      paraFoam
+
+  fenics:
+    description: "FEniCS - Finite Element Analysis"
+    image: ghcr.io/sciagent-ai/fenics
+    dockerfile: services/fenics/Dockerfile
+    runtime: python3
+    workdir: /workspace
+    capabilities:
+      - "Partial differential equation solving"
+      - "Structural mechanics"
+      - "Heat transfer"
+      - "Electromagnetics (variational formulation)"
+    example: |
+      from fenics import *
+      mesh = UnitSquareMesh(8, 8)
+      V = FunctionSpace(mesh, 'P', 1)
+      u = TrialFunction(V)
+      v = TestFunction(V)
+      f = Constant(-6.0)
+      a = dot(grad(u), grad(v))*dx
+      L = f*v*dx
+      u = Function(V)
+      solve(a == L, u)
+
+  lumerical:
+    description: "Lumerical FDTD - Commercial photonics simulation (requires license)"
+    image: ghcr.io/sciagent-ai/lumerical
+    dockerfile: services/lumerical/Dockerfile
+    runtime: python3
+    workdir: /workspace
+    requires_license: true
+    capabilities:
+      - "Photonic device simulation"
+      - "Silicon photonics"
+      - "Plasmonics"
+      - "Metamaterials"
+    example: |
+      import lumapi
+      fdtd = lumapi.FDTD()
+      fdtd.addfdtd(dimension="2D", x=0, y=0, x_span=10e-6, y_span=10e-6)
+      fdtd.addring(x=0, y=0, inner_radius=1e-6, outer_radius=2e-6)
+      fdtd.run()

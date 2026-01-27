@@ -1,4 +1,5 @@
-# Simple S4 test container
+# S4/RCWA simulation container
+# Tool only - agent fetches docs on-demand
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 # Build S4
 WORKDIR /opt
-RUN pip3 install --no-cache-dir numpy && \
+RUN pip3 install --no-cache-dir numpy matplotlib && \
     git clone https://github.com/phoebe-p/S4.git && \
     cd S4 && \
     ARCH=$(dpkg --print-architecture) && \
@@ -35,11 +36,5 @@ RUN pip3 install --no-cache-dir numpy && \
     sed -i "s|^OPENBLAS_LIB.*|OPENBLAS_LIB = -L$LIB_DIR -lopenblas|" Makefile && \
     make clean && make S4_pyext
 
-# Install uvicorn
-RUN pip3 install --no-cache-dir fastapi uvicorn
-
-WORKDIR /app
-COPY test_s4.py /app/
-
-EXPOSE 8001
-CMD ["uvicorn", "test_s4:app", "--host", "0.0.0.0", "--port", "8001"]
+WORKDIR /workspace
+CMD ["python3"]
